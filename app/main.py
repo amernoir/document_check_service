@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from app.api.checks import router as checks_router
+
 
 def create_app() -> FastAPI:
     app = FastAPI(
@@ -7,6 +9,8 @@ def create_app() -> FastAPI:
         description="AI-agent for document package verification",
         version="1.0.0",
     )
+
+    app.include_router(checks_router)
 
     @app.get("/health")
     def health():
