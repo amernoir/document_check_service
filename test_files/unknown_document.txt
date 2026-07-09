@@ -1,0 +1,1 @@
+plain text file - should not be accepted
