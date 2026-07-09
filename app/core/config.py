@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
-    JWT_SECRET: str = "change-me-in-production"
-    JWT_EXPIRE_HOURS: int = 24
+    JWT_SECRET: str = ""
+    JWT_EXPIRE_MINUTES: int = 30
 
     model_config = {"env_file": ".env"}
 

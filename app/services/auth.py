@@ -13,6 +13,12 @@ from app.models.user import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
+def _get_secret() -> str:
+    if not settings.JWT_SECRET:
+        raise RuntimeError("JWT_SECRET не задан. Установите переменную окружения.")
+    return settings.JWT_SECRET
+
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
@@ -22,12 +28,13 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def create_access_token(username: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRE_HOURS)
-    return jwt.encode(
-        {"sub": username, "exp": expire},
-        settings.JWT_SECRET,
-        algorithm="HS256",
-    )
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": username,
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
+    }
+    return jwt.encode(payload, _get_secret(), algorithm="HS256")
 
 
 def get_current_user(
@@ -40,7 +47,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, _get_secret(), algorithms=["HS256"])
         username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception

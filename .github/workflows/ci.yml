@@ -28,6 +28,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/doccheck_test
       UPLOAD_DIR: ./uploads
+      JWT_SECRET: ci-test-secret-key-for-testing-only
 
     steps:
       - uses: actions/checkout@v4
