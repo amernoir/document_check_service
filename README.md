@@ -131,14 +131,14 @@ Get details of a specific check.
 
 ## Motivation
 
-### Why this project?
+### Почему этот проект интересен?
 
-Document verification for preferential loans is a critical business process that currently requires manual effort. Automating this with AI reduces processing time from hours to seconds, eliminates human error, and ensures consistent compliance with program requirements.
+Автоматизация рутинных процессов - это неотъемлемая часть прогресса, создавая подобные инструменты, мы делаем вклад в развитие человеческого потенциала. Проверка документов для получения льготных кредитов - это критически важный бизнес-процесс, который в настоящее время требует ручной обработки. Автоматизация этого процесса с помощью искусственного интеллекта сокращает время обработки с часов до секунд, исключает ошибки, вызванные человеческим фактором, и обеспечивает неизменное соблюдение требований программы.
 
-### Role in the team
+### Роль в команде
 
-As a backend developer, I would focus on building robust, testable APIs that serve as the foundation for AI-powered document processing. My strength in clean architecture and thorough testing ensures the system is reliable and maintainable.
+Как бэкенд-разработчик, я бы сосредоточился на создании надежных и пригодных к тестированию API, которые станут фундаментом для систем обработки документов на базе искусственного интеллекта. Мой опыт работы с принципами чистой архитектуры в Школе21 и тщательным тестированием гарантирует надежность и удобство сопровождения системы.
 
-### Time commitment
+### Сколько времени я готов уделять проекту 
 
-I can dedicate 15-20 hours per week for 2-3 months to this project.
+Я готов вкладываться в проект столько, сколько он этого потребует, оптимальным для себя вижу 40 часов в неделю
