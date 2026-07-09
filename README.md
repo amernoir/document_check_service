@@ -1,6 +1,6 @@
 # Document Check Service
 
-AI-agent for automated verification of document packages for preferential loan programs.
+AI-агент проверки целевого использования льготных кредитов.
 
 ## Quick Start
 
