@@ -2,8 +2,10 @@ from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.models.user import User
 from app.repositories.check_repository import get_check, list_checks
 from app.schemas.check import CheckResponse, CheckListItem
+from app.services.auth import get_current_user
 from app.services.check_service import process_check
 
 router = APIRouter(prefix="/api/checks", tags=["checks"])
@@ -14,6 +16,7 @@ async def create_check(
     files: list[UploadFile] = File(...),
     program: str = Form(...),
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     if program not in ("federal", "regional"):
         raise HTTPException(status_code=400, detail="Program must be 'federal' or 'regional'")

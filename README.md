@@ -1,104 +1,133 @@
 # Document Check Service
 
-AI-агент проверки целевого использования льготных кредитов.
+AI-агент проверки комплектности документальных пакетов для программ льготного кредитования.
 
-## Quick Start
+## Быстрый старт
 
-### With Docker (recommended)
+### Docker (рекомендуется)
 
 ```bash
 docker compose up --build
 ```
 
-After starting, run the migration:
+После запуска примените миграции:
+
 ```bash
 docker compose exec app alembic upgrade head
 ```
 
-Service available at: http://localhost:8000
+Сервис: http://localhost:8000
 Swagger UI: http://localhost:8000/docs
 
-### Local Development
+### Локальная разработка
 
 ```bash
-# Create virtual environment
 python -m venv venv
 source venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Set up database
 createdb doccheck
 alembic upgrade head
 
-# Run server
 uvicorn app.main:app --reload
 ```
 
-## Running Tests
+## Тестирование
 
 ```bash
-# Unit tests
+# Unit-тесты (без БД)
 pytest tests/test_classifier.py tests/test_validator.py tests/test_status_resolver.py -v
 
-# Integration tests (requires running DB)
+# Интеграционные тесты (требуется запущенная БД)
 pytest tests/test_api.py -v
 
-# All tests
+# Все тесты
 pytest tests/ -v
 ```
 
-## Technologies
+## Стек технологий
 
-- **FastAPI** — modern async web framework with automatic OpenAPI docs
-- **PostgreSQL** — relational database for storing check history
-- **SQLAlchemy 2.0** — ORM for database operations
-- **Alembic** — database migration management
-- **Pydantic v2** — data validation and serialization
-- **Docker Compose** — containerized deployment
+- **FastAPI** — async-фреймворк с автогенерируемой OpenAPI-спецификацией
+- **PostgreSQL** — реляционная БД для хранения истории проверок
+- **SQLAlchemy 2.0** — ORM с поддержкой Mapped-стиля
+- **Alembic** — управление database migrations
+- **Pydantic v2** — data validation и сериализация
+- **Docker Compose** — контейнеризация и оркестрация сервисов
+- **JWT + bcrypt** — аутентификация: хеширование паролей через bcrypt, JWT-токены, FastAPI `OAuth2PasswordBearer` dependency
 
-## Architecture
+## Архитектура
 
 ```
 app/
-├── api/          # FastAPI routers (HTTP layer)
-├── schemas/      # Pydantic models (request/response)
-├── services/     # Business logic (pure functions, no DB deps)
-│   ├── classifier.py      # Document type detection
-│   ├── validator.py       # Package completeness validation
-│   ├── status_resolver.py # Status determination
-│   └── check_service.py   # Orchestrator
-├── repositories/ # Database operations (CRUD)
-├── models/       # SQLAlchemy models
-├── core/         # Config and utilities
-└── db/           # Database session management
+├── api/              # HTTP-слой (FastAPI routers)
+│   ├── auth.py       # Регистрация, логин
+│   └── checks.py     # CRUD-операции с проверками
+├── schemas/          # Pydantic-схемы (request/response models)
+├── services/         # Бизнес-логика (чистые функции, без зависимости от Фреймворка)
+│   ├── auth.py            # JWT, хеширование паролей, OAuth2 dependency
+│   ├── classifier.py      # Определение типа документа по имени файла
+│   ├── validator.py       # Валидация комплектности пакета
+│   ├── status_resolver.py # Определение итогового статуса
+│   └── check_service.py   # Оркестрация всего процесса
+├── repositories/     # Database operations (CRUD)
+├── models/           # SQLAlchemy ORM-модели
+├── core/             # Конфигурация и утилиты
+└── db/               # Управление сессиями БД
 ```
 
-### Design Decisions
+### Ключевые решения
 
-- **Pure business logic**: `classifier.py`, `validator.py`, `status_resolver.py` are pure functions with no dependencies on FastAPI or SQLAlchemy — easy to unit test
-- **Stub extracted data**: AI module integration is simulated; real extraction would require additional AI services
-- **Local file storage**: Files stored in `uploads/` directory with UUID-based names
+- **Чистая бизнес-логика**: `classifier.py`, `validator.py`, `status_resolver.py` — чистые функции без зависимостей от FastAPI или SQLAlchemy, что обеспечивает простоту unit-тестирования
+- **Stub извлечения данных**: интеграция с AI-модулем имитирована; реальное извлечение потребует отдельного AI-сервиса
+- **Локальное хранение файлов**: файлы сохраняются в `uploads/` с UUID-именами для исключения коллизий
+- **Аутентификация**: JWT-токены с time-to-live, bcrypt для хеширования паролей, FastAPI `Depends()` для injection authentication dependency
 
-## Environment Variables
+## Переменные окружения
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| DATABASE_URL | postgresql://postgres:postgres@localhost:5432/doccheck | PostgreSQL connection string |
-| UPLOAD_DIR | ./uploads | Directory for storing uploaded files |
-| APP_HOST | 0.0.0.0 | Server host |
-| APP_PORT | 8000 | Server port |
+| Переменная | Значение по умолчанию | Описание |
+|------------|----------------------|----------|
+| DATABASE_URL | postgresql://postgres:postgres@localhost:5432/doccheck | Строка подключения к PostgreSQL |
+| UPLOAD_DIR | ./uploads | Директория для хранения загруженных файлов |
+| APP_HOST | 0.0.0.0 | Хост сервера |
+| APP_PORT | 8000 | Порт сервера |
+| JWT_SECRET | change-me-in-production | Секретный ключ для подписи JWT |
+| JWT_EXPIRE_HOURS | 24 | Время жизни токена в часах |
 
 ## API Endpoints
 
-### POST /api/checks
+### POST /api/auth/register
 
-Upload document package for verification.
+Регистрация нового пользователя. Возвращает JWT-токен.
 
 **Request:**
-- `files`: Multiple files (multipart/form-data)
-- `program`: "federal" or "regional"
+```json
+{"username": "admin", "password": "admin123"}
+```
+
+**Response:**
+```json
+{"access_token": "eyJ...", "token_type": "bearer"}
+```
+
+### POST /api/auth/login
+
+Авторизация. Возвращает JWT-токен.
+
+**Request:**
+```json
+{"username": "admin", "password": "admin123"}
+```
+
+### POST /api/checks
+
+**Требуется:** `Authorization: Bearer <token>`
+
+Загрузка пакета документов для проверки.
+
+**Request (multipart/form-data):**
+- `files` — файлы документов (PDF, DOCX, JPG, PNG)
+- `program` — `federal` или `regional`
 
 **Response:**
 ```json
@@ -123,11 +152,11 @@ Upload document package for verification.
 
 ### GET /api/checks
 
-List all verification checks.
+Получение списка всех выполненных проверок.
 
 ### GET /api/checks/{id}
 
-Get details of a specific check.
+Получение детальной информации о проверке по ID.
 
 ## Motivation
 
