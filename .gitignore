@@ -19,3 +19,7 @@ uploads/
 .vscode/
 .idea/
 *.swp
+
+# MiMoCode
+.mimocode/
+docs/
